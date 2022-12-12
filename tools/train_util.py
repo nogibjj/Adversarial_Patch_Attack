@@ -8,7 +8,8 @@ import torch.optim as optim
 
 from tools.FP_layers import *
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
 
 def train(net, epochs, batch_size, lr, reg, log_every_n=50):
     """
@@ -17,32 +18,46 @@ def train(net, epochs, batch_size, lr, reg, log_every_n=50):
     :param epochs: Number of epochs in total.
     :param batch_size: Batch size for training.
     """
-    print('==> Preparing data..')
-    transform_train = transforms.Compose([
-        transforms.RandomCrop(32, padding=4),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    print("==> Preparing data..")
+    transform_train = transforms.Compose(
+        [
+            transforms.RandomCrop(32, padding=4),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        ]
+    )
 
-    ])
-
-    transform_test = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-
-    ])
+    transform_test = transforms.Compose(
+        [
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        ]
+    )
     best_acc = 0  # best test accuracy
     start_epoch = 0  # start from epoch 0 or last checkpoint epoch
-    trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=8)
+    trainset = torchvision.datasets.CIFAR10(
+        root="./data", train=True, download=True, transform=transform_train
+    )
+    trainloader = torch.utils.data.DataLoader(
+        trainset, batch_size=batch_size, shuffle=True, num_workers=8
+    )
 
-    testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=2)
+    testset = torchvision.datasets.CIFAR10(
+        root="./data", train=False, download=True, transform=transform_test
+    )
+    testloader = torch.utils.data.DataLoader(
+        testset, batch_size=100, shuffle=False, num_workers=2
+    )
 
     criterion = nn.CrossEntropyLoss()
 
-    optimizer = optim.SGD(net.parameters(), lr=lr, momentum=0.875, weight_decay=reg, nesterov=False)
-    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[int(epochs*0.5), int(epochs*0.75)], gamma=0.1)
+    optimizer = optim.SGD(
+        net.parameters(), lr=lr, momentum=0.875, weight_decay=reg, nesterov=False
+    )
+    scheduler = optim.lr_scheduler.MultiStepLR(
+        optimizer, milestones=[int(epochs * 0.5), int(epochs * 0.75)], gamma=0.1
+    )
 
     global_steps = 0
     start = time.time()
@@ -51,7 +66,7 @@ def train(net, epochs, batch_size, lr, reg, log_every_n=50):
         """
         Start the training code.
         """
-        print('\nEpoch: %d' % epoch)
+        print("\nEpoch: %d" % epoch)
         net.train()
         train_loss = 0
         correct = 0
@@ -73,8 +88,15 @@ def train(net, epochs, batch_size, lr, reg, log_every_n=50):
             if global_steps % log_every_n == 0:
                 end = time.time()
                 num_examples_per_second = log_every_n * batch_size / (end - start)
-                print("[Step=%d]\tLoss=%.4f\tacc=%.4f\t%.1f examples/second"
-                      % (global_steps, train_loss / (batch_idx + 1), (correct / total), num_examples_per_second))
+                print(
+                    "[Step=%d]\tLoss=%.4f\tacc=%.4f\t%.1f examples/second"
+                    % (
+                        global_steps,
+                        train_loss / (batch_idx + 1),
+                        (correct / total),
+                        num_examples_per_second,
+                    )
+                )
                 start = time.time()
 
         scheduler.step()
@@ -106,35 +128,46 @@ def train(net, epochs, batch_size, lr, reg, log_every_n=50):
             torch.save(net.state_dict(), "pretrained_model.pt")
 
 
-
 def finetune(net, epochs, batch_size, lr, reg, log_every_n=50):
-    print('==> Preparing data..')
-    transform_train = transforms.Compose([
-        transforms.RandomCrop(32, padding=4),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    print("==> Preparing data..")
+    transform_train = transforms.Compose(
+        [
+            transforms.RandomCrop(32, padding=4),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        ]
+    )
 
-    ])
-
-    transform_test = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-
-    ])
+    transform_test = transforms.Compose(
+        [
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        ]
+    )
     best_acc = 0  # best test accuracy
     start_epoch = 0  # start from epoch 0 or last checkpoint epoch
-    trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=8)
+    trainset = torchvision.datasets.CIFAR10(
+        root="./data", train=True, download=True, transform=transform_train
+    )
+    trainloader = torch.utils.data.DataLoader(
+        trainset, batch_size=batch_size, shuffle=True, num_workers=8
+    )
 
-    testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=2)
+    testset = torchvision.datasets.CIFAR10(
+        root="./data", train=False, download=True, transform=transform_test
+    )
+    testloader = torch.utils.data.DataLoader(
+        testset, batch_size=100, shuffle=False, num_workers=2
+    )
 
     net = net.to(device)
 
     criterion = nn.CrossEntropyLoss()
 
-    optimizer = optim.SGD(net.parameters(), lr=lr, momentum=0.875, weight_decay=reg, nesterov=False)
+    optimizer = optim.SGD(
+        net.parameters(), lr=lr, momentum=0.875, weight_decay=reg, nesterov=False
+    )
 
     global_steps = 0
     start = time.time()
@@ -143,7 +176,7 @@ def finetune(net, epochs, batch_size, lr, reg, log_every_n=50):
         """
         Start the training code.
         """
-        print('\nEpoch: %d' % epoch)
+        print("\nEpoch: %d" % epoch)
         net.train()
         train_loss = 0
         correct = 0
@@ -165,8 +198,15 @@ def finetune(net, epochs, batch_size, lr, reg, log_every_n=50):
             if global_steps % log_every_n == 0:
                 end = time.time()
                 num_examples_per_second = log_every_n * batch_size / (end - start)
-                print("[Step=%d]\tLoss=%.4f\tacc=%.4f\t%.1f examples/second"
-                      % (global_steps, train_loss / (batch_idx + 1), (correct / total), num_examples_per_second))
+                print(
+                    "[Step=%d]\tLoss=%.4f\tacc=%.4f\t%.1f examples/second"
+                    % (
+                        global_steps,
+                        train_loss / (batch_idx + 1),
+                        (correct / total),
+                        num_examples_per_second,
+                    )
+                )
                 start = time.time()
         """
         Start the testing code.
@@ -194,17 +234,34 @@ def finetune(net, epochs, batch_size, lr, reg, log_every_n=50):
             print("Saving...")
             torch.save(net.state_dict(), "quantized_net_after_finetune.pt")
 
+
 def test(net):
-    transform_test = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    transform_test = transforms.Compose(
+        [
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        ]
+    )
 
-    ])
+    testset = torchvision.datasets.CIFAR10(
+        root="./data", train=False, download=True, transform=transform_test
+    )
+    testloader = torch.utils.data.DataLoader(
+        testset, batch_size=100, shuffle=False, num_workers=2
+    )
 
-    testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=2)
-
-    classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+    classes = (
+        "plane",
+        "car",
+        "bird",
+        "cat",
+        "deer",
+        "dog",
+        "frog",
+        "horse",
+        "ship",
+        "truck",
+    )
 
     criterion = nn.CrossEntropyLoss()
 
@@ -225,6 +282,3 @@ def test(net):
     num_val_steps = len(testloader)
     val_acc = correct / total
     print("Test Loss=%.4f, Test accuracy=%.4f" % (test_loss / (num_val_steps), val_acc))
-
-
-

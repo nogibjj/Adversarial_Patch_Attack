@@ -5,24 +5,49 @@ import torch.nn.functional as F
 # import FP_layers.py from the same directory
 from tools.FP_layers import *
 
+
 class ResNet_Block(nn.Module):
     def __init__(self, in_chs, out_chs, strides, Nbits=None):
         super(ResNet_Block, self).__init__()
         self.conv1 = nn.Sequential(
-            FP_Conv(in_channels=in_chs, out_channels=out_chs,
-                      stride=strides, padding=1, kernel_size=3, bias=False, Nbits=Nbits),
+            FP_Conv(
+                in_channels=in_chs,
+                out_channels=out_chs,
+                stride=strides,
+                padding=1,
+                kernel_size=3,
+                bias=False,
+                Nbits=Nbits,
+            ),
             nn.BatchNorm2d(out_chs),
-            nn.ReLU(True))
+            nn.ReLU(True),
+        )
         self.conv2 = nn.Sequential(
-            FP_Conv(in_channels=out_chs, out_channels=out_chs,
-                      stride=1, padding=1, kernel_size=3, bias=False, Nbits=Nbits),
-            nn.BatchNorm2d(out_chs))
+            FP_Conv(
+                in_channels=out_chs,
+                out_channels=out_chs,
+                stride=1,
+                padding=1,
+                kernel_size=3,
+                bias=False,
+                Nbits=Nbits,
+            ),
+            nn.BatchNorm2d(out_chs),
+        )
 
         if in_chs != out_chs:
             self.id_mapping = nn.Sequential(
-                FP_Conv(in_channels=in_chs, out_channels=out_chs,
-                          stride=strides, padding=0, kernel_size=1, bias=False, Nbits=Nbits),
-                nn.BatchNorm2d(out_chs))
+                FP_Conv(
+                    in_channels=in_chs,
+                    out_channels=out_chs,
+                    stride=strides,
+                    padding=0,
+                    kernel_size=1,
+                    bias=False,
+                    Nbits=Nbits,
+                ),
+                nn.BatchNorm2d(out_chs),
+            )
         else:
             self.id_mapping = None
         self.final_activation = nn.ReLU(True)
@@ -36,15 +61,23 @@ class ResNet_Block(nn.Module):
             x_ = x
         return self.final_activation(x_ + out)
 
+
 class ResNetCIFAR(nn.Module):
     def __init__(self, num_layers=20, Nbits=None):
         super(ResNetCIFAR, self).__init__()
         self.num_layers = num_layers
         self.head_conv = nn.Sequential(
-            FP_Conv(in_channels=3, out_channels=16,
-                      stride=1, padding=1, kernel_size=3, bias=False, Nbits=None),
+            FP_Conv(
+                in_channels=3,
+                out_channels=16,
+                stride=1,
+                padding=1,
+                kernel_size=3,
+                bias=False,
+                Nbits=None,
+            ),
             nn.BatchNorm2d(16),
-            nn.ReLU(True)
+            nn.ReLU(True),
         )
         num_layers_per_stage = (num_layers - 2) // 6
         self.body_op = []
@@ -70,7 +103,7 @@ class ResNetCIFAR(nn.Module):
                 strides = 1
             self.body_op.append(ResNet_Block(num_inputs, 64, strides, Nbits=Nbits))
             num_inputs = 64
-            
+
         self.body_op = nn.Sequential(*self.body_op)
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.final_fc = FP_Linear(64, 10, Nbits=None)
@@ -81,4 +114,3 @@ class ResNetCIFAR(nn.Module):
         self.features = self.avg_pool(out)
         self.feat_1d = self.features.mean(3).mean(2)
         return self.final_fc(self.feat_1d)
-
