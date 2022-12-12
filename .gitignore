@@ -1,6 +1,6 @@
 
-#ignore saved_models
-saved_models/
+#ignore saved_models checkpoints
+saved_models/hub/checkpoints/*
 
 #ignore pytorch artifacts
 data
