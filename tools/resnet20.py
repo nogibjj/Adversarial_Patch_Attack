@@ -2,7 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from FP_layers import *
+# import FP_layers.py from the same directory
+from tools.FP_layers import *
 
 class ResNet_Block(nn.Module):
     def __init__(self, in_chs, out_chs, strides, Nbits=None):
