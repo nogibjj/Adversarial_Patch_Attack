@@ -1,12 +1,6 @@
-#ignore big media files
-media
-#ignore transcript changes from whisper tests:wq
-four-score.m4a.*
 
-#ignore huggingface
-summarizeApp
-#ignore fine-tuning
-test_trainer/
+#ignore saved_models
+saved_models/
 
 #ignore pytorch artifacts
 data
