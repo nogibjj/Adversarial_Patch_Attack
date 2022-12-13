@@ -40,5 +40,5 @@ torch
 torchvision
 tensorflow
 pytorch-lightning>=1.4
-
+pydna
 

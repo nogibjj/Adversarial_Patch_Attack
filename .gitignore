@@ -2,6 +2,9 @@
 #ignore pretrained models
 PyTorch_CIFAR10
 
+# ignore pickle files
+*.pkl
+
 #ignore saved_models checkpoints
 saved_models/hub/checkpoints/*
 

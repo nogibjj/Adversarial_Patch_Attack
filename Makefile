@@ -3,6 +3,12 @@ install:
 		pip install -r requirements.txt
 	#force install latest whisper
 	pip install --upgrade --no-deps --force-reinstall git+https://github.com/openai/whisper.git
+
+install-tensorflow-conda:
+	conda install -c conda-forge cudatoolkit=11.2 cudnn=8.1.0 -y
+	export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/
+	/home/codespace/venv/bin/pip install -r tf-requirements.txt
+
 test:
 	echo add tests here
 	#python -m pytest -vv --cov=main --cov=mylib test_*.py
